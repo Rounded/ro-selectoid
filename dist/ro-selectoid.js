@@ -1,13 +1,36 @@
 angular.module('ro.selectoid', []);
 
 angular.module('ro.selectoid')
+  .provider('roSelectoid', function() {
+
+    var provider = {};
+
+    var _searchEndpoints = {};
+
+    provider.registerEndpoint= function(name, endpoint) {
+      console.log('REGISTERING API:', name, endpoint);
+      _searchEndpoints[name] = endpoint;
+    };
+
+    provider.$get = function() {
+      return {
+        searchEndpoints: _searchEndpoints
+      };
+    };
+
+    return provider;
+
+  })
+
+angular.module('ro.selectoid')
   .directive('roSelectoidResult', function() {
     return {
       restrict: 'EA',
       replace: true,
+      transclude: true,
       templateUrl: 'ro-selectoid-result.html',
-      link: function(scope, elem, attrs) {
-
+      link: function(scope, elem, attrs, selectoid) {
+        
       }
     }
   })
@@ -29,7 +52,7 @@ angular.module('ro.selectoid')
   })
 
 angular.module('ro.selectoid')
-  .directive('roSelectoidSearch', function() {
+  .directive('roSelectoidSearch', ['$injector', '$log', 'roSelectoid', function($injector, $log, roSelectoid) {
     return {
       restrict: 'EA',
       replace: true,
@@ -37,9 +60,34 @@ angular.module('ro.selectoid')
       require: '^roSelectoid',
       link: function(scope, elem, attrs, selectoid) {
 
-      }
-    }
-  })
+        scope.selectoid = selectoid;
+
+        var endpoint, searcher;
+
+        if (attrs.endpoint) {
+          endpoint = roSelectoid.searchEndpoints[attrs.endpoint];
+          if (!endpoint) { $log.error('Endpoint "' + attrs.endpoint + '" not found.') }
+          searcher = $injector.invoke(endpoint);
+        } else {
+          searcher = angular.noop;
+        }
+
+        scope.search = function() {
+          var query = selectoid.query;
+          console.log('SEARCHING FOR:', query);
+          var promise = searcher(query).then(function(results) {
+            console.log('GOT RESULTS:', results);
+            // don't overwrite if query has changed
+            if (query === selectoid.query) {
+              selectoid.results = results;
+            }
+          });
+        };
+
+      } // end link
+
+    };
+  }]);
 
 angular.module('ro.selectoid')
   .directive('roSelectoidToggle', function() {
@@ -76,29 +124,41 @@ angular.module('ro.selectoid')
         var html = '<' + tag + ' class="selectoid" data-ng-transclude></' + tag + '>';
         return html;
       },
+      require: 'ngModel',
       scope: true,
       controller: ['$scope', '$element', function($scope, $element) {
 
-        var dropdown = this;
+        var selectoid = this;
+
+        var ngModelCtrl = $element.controller('ngModel');
+
+        ngModelCtrl.$render = function() {
+          console.log('RENDER WAS CALLED', ngModelCtrl.$viewValue);
+        };
+
+        selectoid.select = function(selection) {
+          selectoid.selected = selection;
+          ngModelCtrl.$setViewValue(selection);
+        };
 
         // increment instances to assign a unique id for aria-labelledby to use
-        dropdown.toggleId = 'ro-selectoid-toggle-' + (++instances);
+        selectoid.toggleId = 'ro-selectoid-toggle-' + (++instances);
 
         var backdropHtml = '<div class="selectoid-backdrop"></div>';
 
-        dropdown.open = function() {
+        selectoid.open = function() {
           $element.addClass('open');
           angular.element(backdropHtml)
-            .insertBefore($element.find('.dropdown-menu'))
-            .on('click touchstart', dropdown.close);
+            .insertBefore($element.find('.selectoid-results'))
+            .on('click touchstart', selectoid.close);
         };
 
-        dropdown.close = function() {
-          angular.element('.dropdown-backdrop').remove();
+        selectoid.close = function() {
+          angular.element('.selectoid-backdrop').remove();
           $element.removeClass('open');
         };
 
-        dropdown.isOpen = function() {
+        selectoid.isOpen = function() {
           return $element.hasClass('open');
         };
 
@@ -112,15 +172,15 @@ angular.module('ro.selectoid')
           var $target = angular.element(evt.target);
           var $focusableItems;
 
-          // down arrow pressed when focusing dropdown-toggle
+          // down arrow pressed when focusing selectoid-toggle
           if ($target.is('.selectoid-toggle') && evt.which == 40) {
-            if (dropdown.isOpen()) {
+            if (selectoid.isOpen()) {
               $element.find('.selectoid-results').find(focusable).first().trigger('focus');
             } else {
-              dropdown.open();
+              selectoid.open();
             }
           } else {
-            // select all focusable items within dropdown-menu
+            // select all focusable items within selectoid-menu
             $focusableItems = $element.find('.selectoid-results').find(focusable);
             var focusedIndex = $focusableItems.index(evt.target);
             // default behavior is to focus the first item
@@ -141,18 +201,22 @@ angular.module('ro.selectoid')
 
           }
 
-        })
+        });
 
       }],
-      controllerAs: 'dropdown'
+      controllerAs: 'selectoid'
     };
   })
 
+angular.module('ro.selectoid').run(['$templateCache', function($templateCache) {
+    $templateCache.put('ro-selectoid-result.html',
+        "<div class=\"selectoid-result\" data-ng-transclude></div>\n");
+}]);
 angular.module('ro.selectoid').run(['$templateCache', function($templateCache) {
     $templateCache.put('ro-selectoid-results.html',
         "<ul class=\"dropdown-menu\" role=\"menu\" data-ng-attr-aria-labelledby=\"{{ dropdown.toggleId }}\" data-ng-transclude></ul>\n");
 }]);
 angular.module('ro.selectoid').run(['$templateCache', function($templateCache) {
     $templateCache.put('ro-selectoid-search.html',
-        "<input type=\"text\" data-ng-model=\"selectoid.query\" data-ng-change=\"selectoid.search()\">\n");
+        "<input class=\"selectoid-search\" type=\"text\" data-ng-model=\"selectoid.query\" data-ng-change=\"search()\">\n");
 }]);

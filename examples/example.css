@@ -1,3 +1,25 @@
 body {
   margin: 0;
 }
+
+.selectoid-backdrop {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 1000;
+  background-color: rgba(0,0,255,0.2);
+}
+
+.selectoid-search,
+.selectoid-results {
+  display: none;
+  z-index: 1010;
+}
+
+
+.selectoid.open .selectoid-search,
+.selectoid.open .selectoid-results {
+  display: block;
+}

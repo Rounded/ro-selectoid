@@ -3,9 +3,10 @@ angular.module('ro.selectoid')
     return {
       restrict: 'EA',
       replace: true,
+      transclude: true,
       templateUrl: 'ro-selectoid-result.html',
-      link: function(scope, elem, attrs) {
-
+      link: function(scope, elem, attrs, selectoid) {
+        
       }
     }
   })

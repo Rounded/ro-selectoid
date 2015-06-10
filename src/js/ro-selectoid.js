@@ -12,29 +12,41 @@ angular.module('ro.selectoid')
         var html = '<' + tag + ' class="selectoid" data-ng-transclude></' + tag + '>';
         return html;
       },
+      require: 'ngModel',
       scope: true,
       controller: ['$scope', '$element', function($scope, $element) {
 
-        var dropdown = this;
+        var selectoid = this;
+
+        var ngModelCtrl = $element.controller('ngModel');
+
+        ngModelCtrl.$render = function() {
+          console.log('RENDER WAS CALLED', ngModelCtrl.$viewValue);
+        };
+
+        selectoid.select = function(selection) {
+          selectoid.selected = selection;
+          ngModelCtrl.$setViewValue(selection);
+        };
 
         // increment instances to assign a unique id for aria-labelledby to use
-        dropdown.toggleId = 'ro-selectoid-toggle-' + (++instances);
+        selectoid.toggleId = 'ro-selectoid-toggle-' + (++instances);
 
         var backdropHtml = '<div class="selectoid-backdrop"></div>';
 
-        dropdown.open = function() {
+        selectoid.open = function() {
           $element.addClass('open');
           angular.element(backdropHtml)
-            .insertBefore($element.find('.dropdown-menu'))
-            .on('click touchstart', dropdown.close);
+            .insertBefore($element.find('.selectoid-results'))
+            .on('click touchstart', selectoid.close);
         };
 
-        dropdown.close = function() {
-          angular.element('.dropdown-backdrop').remove();
+        selectoid.close = function() {
+          angular.element('.selectoid-backdrop').remove();
           $element.removeClass('open');
         };
 
-        dropdown.isOpen = function() {
+        selectoid.isOpen = function() {
           return $element.hasClass('open');
         };
 
@@ -48,15 +60,15 @@ angular.module('ro.selectoid')
           var $target = angular.element(evt.target);
           var $focusableItems;
 
-          // down arrow pressed when focusing dropdown-toggle
+          // down arrow pressed when focusing selectoid-toggle
           if ($target.is('.selectoid-toggle') && evt.which == 40) {
-            if (dropdown.isOpen()) {
+            if (selectoid.isOpen()) {
               $element.find('.selectoid-results').find(focusable).first().trigger('focus');
             } else {
-              dropdown.open();
+              selectoid.open();
             }
           } else {
-            // select all focusable items within dropdown-menu
+            // select all focusable items within selectoid-menu
             $focusableItems = $element.find('.selectoid-results').find(focusable);
             var focusedIndex = $focusableItems.index(evt.target);
             // default behavior is to focus the first item
@@ -77,9 +89,9 @@ angular.module('ro.selectoid')
 
           }
 
-        })
+        });
 
       }],
-      controllerAs: 'dropdown'
+      controllerAs: 'selectoid'
     };
   })
