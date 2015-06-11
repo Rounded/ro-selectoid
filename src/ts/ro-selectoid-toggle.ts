@@ -1,5 +1,10 @@
+interface SelectoidToggleScope extends ng.IScope {
+  selectoid: Selectoid
+  placeholder: string
+}
+
 angular.module('ro.selectoid')
-  .directive('roSelectoidToggle', function() {
+  .directive('roSelectoidToggle', function(): ng.IDirective {
     return {
       restrict: 'EA',
       replace: true,
@@ -13,7 +18,7 @@ angular.module('ro.selectoid')
         placeholder: '@'
       },
       require: '^roSelectoid',
-      link: function(scope, elem, attrs, selectoid) {
+      link: function(scope: SelectoidToggleScope, elem, attrs, selectoid: Selectoid) {
         scope.selectoid = selectoid;
       }
     }

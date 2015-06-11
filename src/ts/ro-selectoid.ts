@@ -1,7 +1,18 @@
-angular.module('ro.selectoid')
-  .directive('roSelectoid', function() {
+interface Selectoid extends ng.IScope {
+  isOpen(): boolean
+  open(): void
+  close(): void
+  select(selection: any): void
+  selected: any
+  toggleId: string
+  query?: string
+  results?: any[]
+};
 
-    var instances = 0;
+angular.module('ro.selectoid')
+  .directive('roSelectoid', function(): ng.IDirective {
+
+    var instances: number = 0;
 
     return {
       restrict: 'EA',
@@ -14,11 +25,11 @@ angular.module('ro.selectoid')
       },
       require: 'ngModel',
       scope: true,
-      controller: ['$scope', '$element', function($scope, $element) {
+      controller: ['$scope', '$element', function($scope: ng.IScope, $element: ng.IAugmentedJQuery) {
 
-        var selectoid = this;
+        var selectoid: Selectoid = this;
 
-        var ngModelCtrl = $element.controller('ngModel');
+        var ngModelCtrl: ng.INgModelController = $element.controller('ngModel');
 
         ngModelCtrl.$render = function() {
           console.log('RENDER WAS CALLED', ngModelCtrl.$viewValue);
@@ -32,7 +43,7 @@ angular.module('ro.selectoid')
         // increment instances to assign a unique id for aria-labelledby to use
         selectoid.toggleId = 'ro-selectoid-toggle-' + (++instances);
 
-        var backdropHtml = '<div class="selectoid-backdrop"></div>';
+        var backdropHtml: string = '<div class="selectoid-backdrop"></div>';
 
         selectoid.open = function() {
           $element.addClass('open');
@@ -51,14 +62,14 @@ angular.module('ro.selectoid')
         };
 
         // store a selector for focusable elements
-        var focusable = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, *[tabindex], *[contenteditable]';
+        var focusable: string = 'a[href], area[href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), button:not([disabled]), iframe, object, embed, *[tabindex], *[contenteditable]';
 
-        $element.on('keydown', function(evt) {
+        $element.on('keydown', function(evt: JQueryEventObject): void {
 
           if (evt.which !== 38 && evt.which !== 40) return;
 
           var $target = angular.element(evt.target);
-          var $focusableItems;
+          var $focusableItems: JQuery;
 
           // down arrow pressed when focusing selectoid-toggle
           if ($target.is('.selectoid-toggle') && evt.which == 40) {
@@ -70,9 +81,9 @@ angular.module('ro.selectoid')
           } else {
             // select all focusable items within selectoid-menu
             $focusableItems = $element.find('.selectoid-results').find(focusable);
-            var focusedIndex = $focusableItems.index(evt.target);
+            var focusedIndex: number = $focusableItems.index(evt.target);
             // default behavior is to focus the first item
-            var nextFocusedIndex = 0;
+            var nextFocusedIndex: number = 0;
             // if the target is in $focusableItems...
             if (~focusedIndex) {
               // up arrow focuses the previous item
