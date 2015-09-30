@@ -1,0 +1,7 @@
+<div class="ro-selectoid" ng-class="{ open: $selectoid.isOpen }">
+  <div class="ro-selectoid-trigger" ng-click="$selectoid.toggle()">
+    <span class="ro-selectoid-label">{{ label }}</span>
+    <span class="ro-selectoid-placeholder" ng-if="!label">{{ placeholder || defaultPlaceholder }}</span>
+  </div>
+  <div class="ro-selectoid-inner" ng-transclude></div>
+</div>

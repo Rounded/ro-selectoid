@@ -1,0 +1,3 @@
+<ul class="ro-selectoid-options">
+  <li class="ro-selectoid-option" ng-repeat="option in options | filter:optionFilter" value="option">{{ parseOptionText({ $option: option }) || option }}</li>
+</ul>

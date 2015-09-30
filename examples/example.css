@@ -2,24 +2,54 @@ body {
   margin: 0;
 }
 
-.selectoid-backdrop {
-  position: fixed;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  z-index: 1000;
-  background-color: rgba(0,0,255,0.2);
+* {
+  box-sizing: border-box;
 }
 
-.selectoid-search,
-.selectoid-results {
+.ro-selectoid {
+  display: inline-block;
+  position: relative;
+  min-width: 258px;
+  margin: 1em;
+}
+
+.ro-selectoid-trigger, .ro-selectoid-option {
+  cursor: pointer;
+}
+
+.ro-selectoid-inner {
   display: none;
-  z-index: 1010;
+  position: absolute;
+  width: 100%;
+  border: 1px solid #556;
+}
+.ro-selectoid.open .ro-selectoid-inner {
+  display: block;
 }
 
+.ro-selectoid-trigger {
+  width: 100%;
+  padding: 1em;
+  font-size: 2em;
+  background-color: #556;
+  color: white;
+}
 
-.selectoid.open .selectoid-search,
-.selectoid.open .selectoid-results {
+.ro-selectoid-inner ul {
   display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.ro-selectoid-option {
+  width: 100%;
+  padding: 1em;
+  font-size: 2em;
+}
+.ro-selectoid-option:hover {
+  background-color: rgba(0,0,10,0.05)
+}
+.ro-selectoid-option:active {
+  background-color: rgba(0,0,10,0.1)
 }
